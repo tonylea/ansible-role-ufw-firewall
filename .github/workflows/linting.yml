@@ -5,10 +5,10 @@ on:
 
 jobs:
   common:
-    uses: tonylea/ci-templates/.github/workflows/linting-common.yml@v1.0.0
+    uses: tonylea/ci-templates/.github/workflows/linting-common.yml@v1.1.1
 
   ansible:
-    uses: tonylea/ci-templates/.github/workflows/linting-ansible.yml@v1.0.0
+    uses: tonylea/ci-templates/.github/workflows/linting-ansible.yml@v1.1.1
 
   # The required check. Skipped jobs pass; failed or cancelled ones don't.
   linting:

@@ -6,7 +6,7 @@ on:
 
 jobs:
   common:
-    uses: tonylea/ci-templates/.github/workflows/versioning-common.yml@v1.0.0
+    uses: tonylea/ci-templates/.github/workflows/versioning-common.yml@v1.1.1
     permissions:
       contents: write
     secrets:
