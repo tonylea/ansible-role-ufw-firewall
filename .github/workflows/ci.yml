@@ -1,14 +1,15 @@
 name: CI
 
+# Pull requests are checked; main only releases what those checks passed.
 on:
-  push:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
   linting:
     runs-on: ubuntu-24.04
-    # Release commits are made by the versioning job and need no checks.
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -21,8 +22,7 @@ jobs:
       - run: npm ci
 
       - name: Commit messages
-        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
-        run: npx commitlint --from ${{ github.event.before }} --to ${{ github.sha }}
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
 
       - name: Markdown
         run: npx markdownlint-cli2
@@ -62,8 +62,7 @@ jobs:
       - run: molecule test
 
   versioning:
-    needs: testing
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
