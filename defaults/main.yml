@@ -1,0 +1,2 @@
+# Networks allowed to SSH in. The role refuses to run with none, so it can't lock everyone out.
+ufw_firewall_ssh_sources: []

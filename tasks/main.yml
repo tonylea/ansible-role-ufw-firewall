@@ -1,0 +1,33 @@
+- name: Refuse to firewall a machine nobody could then SSH into
+  ansible.builtin.assert:
+    that: ufw_firewall_ssh_sources | length > 0
+    fail_msg: Set ufw_firewall_ssh_sources to the networks allowed to SSH in.
+    quiet: true
+
+- name: Install ufw
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+
+- name: Block incoming traffic by default
+  community.general.ufw:
+    default: deny
+    direction: incoming
+
+- name: Allow outgoing traffic by default
+  community.general.ufw:
+    default: allow
+    direction: outgoing
+
+# Added before the firewall is enabled, so the current SSH session survives.
+- name: Allow SSH, rate-limited, from the given networks
+  community.general.ufw:
+    rule: limit
+    port: "22"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ ufw_firewall_ssh_sources }}"
+
+- name: Enable the firewall
+  community.general.ufw:
+    state: enabled
