@@ -1,0 +1,31 @@
+{
+  "version": "0.2",
+  "language": "en-GB",
+  "dictionaries": [
+    "softwareTerms"
+  ],
+  "ignorePaths": [
+    ".git/**",
+    ".husky/**",
+    "node_modules/**",
+    "CHANGELOG.md",
+    "package-lock.json"
+  ],
+  "words": [
+    "cgroupns",
+    "commitlint",
+    "conntrack",
+    "dport",
+    "homelab",
+    "iptables",
+    "noreply",
+    "secretlint",
+    "SIGRTMIN",
+    "sysv",
+    "tmpfs",
+    "tonylea",
+    "trixie",
+    "ufw",
+    "vars"
+  ]
+}
