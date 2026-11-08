@@ -1,49 +1,13 @@
 name: Versioning
 
-# versioning is a required check on main, so pull requests must report it, as skipped.
 on:
-  pull_request:
   push:
     branches: [main]
 
 jobs:
-  versioning:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-24.04
+  common:
+    uses: tonylea/ci-templates/.github/workflows/versioning-common.yml@v1.0.0
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@v7.0.1
-        with:
-          fetch-depth: 0
-          # Only this repo's release deploy key may push the release commit and tag past main's rules.
-          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
-
-      - uses: actions/setup-node@v7.1.0
-        with:
-          node-version: "24"
-
-      - run: npm ci
-
-      - name: Bump the version, update the changelog and tag
-        id: release
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git describe --tags --abbrev=0 >/dev/null 2>&1; then
-            npx commit-and-tag-version --first-release
-          elif git log "$(git describe --tags --abbrev=0)..HEAD" --format="%s%n%b" | grep -qE "^(feat|fix)(\(.+\))?!?:|BREAKING CHANGE"; then
-            npx commit-and-tag-version
-          else
-            echo "Nothing to release."
-            exit 0
-          fi
-          echo "version=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Push and publish the release
-        if: steps.release.outputs.version != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git push --follow-tags origin HEAD:main
-          gh release create "${{ steps.release.outputs.version }}" --title "${{ steps.release.outputs.version }}" --generate-notes
+    secrets:
+      release-deploy-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
