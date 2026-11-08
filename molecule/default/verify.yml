@@ -1,0 +1,55 @@
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Read the firewall rules loaded in the kernel
+      ansible.builtin.command: iptables -S
+      register: iptables
+      changed_when: false
+
+    - name: Incoming traffic is dropped unless a rule allows it
+      ansible.builtin.assert:
+        that: "'-P INPUT DROP' in iptables.stdout_lines"
+
+    - name: SSH is rate-limited and allowed from each given network
+      ansible.builtin.assert:
+        that: >-
+          iptables.stdout_lines
+          | select('search', '^-A ufw-user-input -s ' ~ item ~ ' .*--dport 22 .*-j ufw-user-limit-accept$')
+          | list | length == 1
+      loop: "{{ ufw_firewall_ssh_sources }}"
+
+    - name: SSH is not allowed from anywhere else
+      ansible.builtin.assert:
+        that: >-
+          iptables.stdout_lines
+          | select('search', '^-A ufw-user-input .*--dport 22 ')
+          | reject('search', ' -s (' ~ (ufw_firewall_ssh_sources | join('|')) ~ ') ')
+          | list | length == 0
+
+    - name: Gather service states
+      ansible.builtin.service_facts:
+
+    - name: The firewall comes back after a reboot
+      ansible.builtin.assert:
+        that: ansible_facts.services['ufw.service'].status == 'enabled'
+
+    - name: Run the role with no SSH networks
+      block:
+        - name: Apply the role with no SSH networks
+          ansible.builtin.include_role:
+            name: tonylea.ufw_firewall
+          vars:
+            ufw_firewall_ssh_sources: []
+
+        - name: Record that the role carried on
+          ansible.builtin.set_fact:
+            guard_stopped: false
+      rescue:
+        - name: Record that the role stopped
+          ansible.builtin.set_fact:
+            guard_stopped: true
+
+    - name: The role refuses to lock everyone out
+      ansible.builtin.assert:
+        that: guard_stopped

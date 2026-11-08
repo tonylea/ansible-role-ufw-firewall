@@ -1,0 +1,5 @@
+FROM {{ item.image }}
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends systemd systemd-sysv python3 sudo \
+ && rm -rf /var/lib/apt/lists/*
+STOPSIGNAL SIGRTMIN+3

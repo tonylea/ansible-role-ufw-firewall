@@ -1,0 +1,35 @@
+dependency:
+  name: galaxy
+  options:
+    requirements-file: requirements.yml
+
+driver:
+  name: docker
+
+platforms:
+  - name: debian-trixie
+    image: debian:trixie-20261104
+    dockerfile: Dockerfile.j2
+    pre_build_image: false
+    # systemd runs as PID 1 so ufw starts as a service, and privileged lets ufw load firewall rules.
+    command: /lib/systemd/systemd
+    privileged: true
+    cgroupns_mode: host
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+    tmpfs:
+      - /run
+      - /tmp
+
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      debian-trixie:
+        # Documentation ranges (RFC 5737), so the test can't depend on any real network.
+        ufw_firewall_ssh_sources:
+          - 198.51.100.0/24
+          - 203.0.113.0/24
+
+verifier:
+  name: ansible
