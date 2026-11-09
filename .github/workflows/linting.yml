@@ -4,15 +4,20 @@ on:
   pull_request:
 
 jobs:
+  changes:
+    uses: tonylea/ci-templates/.github/workflows/changes-ansible-role.yml@v1.2.0
+
   common:
-    uses: tonylea/ci-templates/.github/workflows/linting-common.yml@v1.1.1
+    uses: tonylea/ci-templates/.github/workflows/linting-common.yml@v1.2.0
 
   ansible:
-    uses: tonylea/ci-templates/.github/workflows/linting-ansible.yml@v1.1.1
+    needs: [changes]
+    if: needs.changes.outputs.role == 'true'
+    uses: tonylea/ci-templates/.github/workflows/linting-ansible.yml@v1.2.0
 
   # The required check. Skipped jobs pass; failed or cancelled ones don't.
   linting:
-    needs: [common, ansible]
+    needs: [changes, common, ansible]
     if: always()
     runs-on: ubuntu-24.04
     steps:
