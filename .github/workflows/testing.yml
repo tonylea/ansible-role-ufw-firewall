@@ -4,12 +4,17 @@ on:
   pull_request:
 
 jobs:
+  changes:
+    uses: tonylea/ci-templates/.github/workflows/changes-ansible-role.yml@v1.2.0
+
   ansible-molecule:
-    uses: tonylea/ci-templates/.github/workflows/testing-ansible-molecule.yml@v1.1.1
+    needs: [changes]
+    if: needs.changes.outputs.role == 'true'
+    uses: tonylea/ci-templates/.github/workflows/testing-ansible-molecule.yml@v1.2.0
 
   # The required check. Skipped jobs pass; failed or cancelled ones don't.
   testing:
-    needs: [ansible-molecule]
+    needs: [changes, ansible-molecule]
     if: always()
     runs-on: ubuntu-24.04
     steps:
